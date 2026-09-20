@@ -1,0 +1,12 @@
+cff-version: 1.2.0
+message: >-
+  If you use this software, please cite this repository and also cite Lambert
+  et al. (2026) and the underlying data sources identified in the README.
+title: Lambert Anticentre Lab
+type: software
+version: 0.1.0
+repository-code: https://github.com/ap-13/lambert-anticentre-lab
+url: https://ap-13.github.io/lambert-anticentre-lab/
+authors:
+  - given-names: Atharva Sunil
+    family-names: Patil
