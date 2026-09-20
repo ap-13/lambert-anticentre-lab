@@ -1,0 +1,71 @@
+# Lambert Anticentre Lab
+
+This repository is a three-notebook journal-club laboratory for understanding
+the observational and dynamical logic of Lambert et al. (2026). The governing
+scope and scientific guardrails are in
+[`CODEX_BUILD_SPEC.md`](CODEX_BUILD_SPEC.md).
+
+The repository deliberately keeps two data tracks separate:
+
+- a future public DESI DR1/Gaia-backed teaching sample for the coordinate
+  workflow in Notebook 1;
+- Lambert's author-released Zenodo figure products for Notebooks 2 and 3.
+
+The Zenodo release is a collection of downstream figure products. It is not the
+unpublished source-level DESI DR2 stellar catalogue used by Lambert. This
+repository does not claim to reproduce that source-level analysis.
+
+## Current status
+
+Task 1 provides packaging, verified download/cache machinery, offline tests,
+and executable notebook shells. It contains no scientific notebook analysis.
+The Lambert FITS/HDU inventory and semantic mapping are Task 2 work and do not
+yet exist.
+
+## Environment
+
+Python 3.11 or newer and
+[`uv`](https://docs.astral.sh/uv/) are required.
+
+```bash
+uv sync
+```
+
+The base package uses NumPy, SciPy, Matplotlib, and Astropy. Notebook and test
+tools are installed through uv's default development dependency group.
+
+## Offline validation
+
+The default suite never uses the network:
+
+```bash
+uv run pytest
+```
+
+The notebook execution harness starts a fresh kernel for each of the three
+notebook shells.
+
+## Lambert release fetch smoke test
+
+Network access is explicit. After authorization, the Task 1 smoke test is:
+
+```bash
+uv run python scripts/fetch_lambert_zenodo.py \
+  --destination data/raw/lambert_zenodo
+```
+
+Run the same command a second time to exercise verified-cache behavior. The
+fetcher resolves the exact Zenodo record, verifies every advertised checksum,
+and writes `_release_provenance.json` beside the ignored raw files. It refuses
+to overwrite an existing file that fails verification.
+
+The smoke test verifies transfer integrity only. FITS inspection, figure
+mapping, and scientific interpretation belong to Task 2.
+
+## Data and generated artifacts
+
+See [`data/README.md`](data/README.md) for the provenance contract. Raw
+downloads, derived working data, and routine validation figures are ignored by
+Git. Task 2 will create the compact committed files
+`data/data_inventory.json` and `data/lambert_release_ambiguities.md`.
+

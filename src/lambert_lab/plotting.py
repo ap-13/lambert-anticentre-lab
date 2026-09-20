@@ -1,0 +1,10 @@
+"""Plotting helpers will be added with the scientific notebook tasks."""
+
+EVIDENCE_LEVELS = (
+    "OBSERVABLE / MEASUREMENT",
+    "COMPUTATIONAL OPERATION",
+    "DATA-SUPPORTED INFERENCE",
+    "MODEL-DEPENDENT INTERPRETATION",
+    "SPECULATION / PHYSICAL EXPLANATION",
+)
+

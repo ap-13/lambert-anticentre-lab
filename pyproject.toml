@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lambert-anticentre-lab"
+version = "0.1.0"
+description = "A disciplined journal-club laboratory for Lambert et al. (2026)"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "astropy>=6",
+    "matplotlib>=3.8",
+    "numpy>=1.26",
+    "scipy>=1.11",
+]
+
+[dependency-groups]
+dev = [
+    "ipykernel>=6",
+    "jupyterlab>=4",
+    "nbclient>=0.10",
+    "nbformat>=5.10",
+    "pytest>=8",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+addopts = "-ra"
+testpaths = ["tests"]
+

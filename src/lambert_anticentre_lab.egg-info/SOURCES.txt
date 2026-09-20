@@ -1,0 +1,17 @@
+README.md
+pyproject.toml
+src/lambert_anticentre_lab.egg-info/PKG-INFO
+src/lambert_anticentre_lab.egg-info/SOURCES.txt
+src/lambert_anticentre_lab.egg-info/dependency_links.txt
+src/lambert_anticentre_lab.egg-info/requires.txt
+src/lambert_anticentre_lab.egg-info/top_level.txt
+src/lambert_lab/__init__.py
+src/lambert_lab/coordinates.py
+src/lambert_lab/data.py
+src/lambert_lab/dynamics.py
+src/lambert_lab/plotting.py
+src/lambert_lab/validation.py
+tests/test_coordinates.py
+tests/test_data.py
+tests/test_dynamics.py
+tests/test_notebooks.py
