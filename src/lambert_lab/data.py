@@ -1,7 +1,6 @@
-"""Verified, provenance-aware data download infrastructure.
+"""Offline Lambert-product loaders and verified data download infrastructure.
 
-The functions in this module do not inspect FITS contents. Network access occurs
-only when :func:`fetch_zenodo_release` is called explicitly.
+Network access occurs only when :func:`fetch_zenodo_release` is called explicitly.
 """
 
 from __future__ import annotations
@@ -12,16 +11,152 @@ import tempfile
 import urllib.error
 import urllib.request
 from collections.abc import Callable, Mapping
+from dataclasses import dataclass
 from datetime import datetime, timezone
+from functools import lru_cache
 from pathlib import Path
 from typing import Any, BinaryIO
 
-from .validation import file_checksum
+import astropy.units as u
+import numpy as np
+from astropy.io import fits
+from astropy.table import QTable
+
+from .validation import file_checksum, require_local_file
 
 DEFAULT_RECORD_ID = "18236902"
 DEFAULT_API_BASE = "https://zenodo.org/api/records"
 PROVENANCE_FILENAME = "_release_provenance.json"
 USER_AGENT = "lambert-anticentre-lab/0.1 (+verified educational data fetch)"
+
+
+@dataclass(frozen=True)
+class ReleasedImage:
+    """One fixed author-binned Lambert image plus inventory display metadata."""
+
+    filename: str
+    data: np.ndarray
+    extent: tuple[float, float, float, float]
+    horizontal_axis: Mapping[str, Any]
+    vertical_axis: Mapping[str, Any]
+    quantity: str
+    value_kind: str
+    value_unit: str
+    figure: int
+    panel: str
+    selection: str
+    sha256: str
+
+
+FIGURE_13_COLUMNS = {
+    "Galactic latitude [deg]": ("b", u.deg),
+    "Galactic longitude [deg]": ("l", u.deg),
+    "vertical velocity [km/s]": ("V_Z", u.km / u.s),
+    "radial velocity [km/s]": ("V_R", u.km / u.s),
+}
+
+
+@lru_cache(maxsize=4)
+def _read_inventory(inventory_path: Path) -> dict[str, Any]:
+    with inventory_path.open(encoding="utf-8") as stream:
+        inventory = json.load(stream)
+    if inventory.get("inventory_kind") != "Lambert author-released figure-data forensic inventory":
+        raise ValueError(f"Not the expected Lambert inventory: {inventory_path}")
+    return inventory
+
+
+def load_lambert_inventory(repository_root: str | Path) -> dict[str, Any]:
+    """Load the committed Task 2 inventory without any network access."""
+
+    root = Path(repository_root).expanduser().resolve()
+    return _read_inventory(root / "data" / "data_inventory.json")
+
+
+def _inventory_member(repository_root: Path, filename: str) -> dict[str, Any]:
+    inventory = load_lambert_inventory(repository_root)
+    matches = [
+        member for member in inventory["archive_members"]
+        if member.get("filename") == filename and member.get("valid_fits") is True
+    ]
+    if len(matches) != 1:
+        raise KeyError(f"Expected one valid inventory entry for {filename!r}; found {len(matches)}")
+    return matches[0]
+
+
+def lambert_product_path(
+    repository_root: str | Path, filename: str, *, verify_checksum: bool = True
+) -> Path:
+    """Resolve an extracted cached product and optionally verify its Task 2 checksum."""
+
+    root = Path(repository_root).expanduser().resolve()
+    member = _inventory_member(root, filename)
+    path = root / "data" / "raw" / "lambert_zenodo" / "extracted" / filename
+    require_local_file(path, purpose=f"Lambert released product {filename}")
+    if verify_checksum:
+        actual = file_checksum(path)
+        if actual != member["sha256"]:
+            raise CacheIntegrityError(
+                f"SHA-256 mismatch for {path}: expected {member['sha256']}, found {actual}"
+            )
+    return path
+
+
+def load_released_image(repository_root: str | Path, filename: str) -> ReleasedImage:
+    """Load a fixed 2-D author product using orientation/extents from the inventory."""
+
+    root = Path(repository_root).expanduser().resolve()
+    member = _inventory_member(root, filename)
+    if member["asset_type"] != "FITS 2-D image array":
+        raise TypeError(f"{filename} is not inventoried as a 2-D image array")
+    image_axes = member["fits"]["image_axes"]
+    orientation = image_axes["orientation_for_paper"]
+    if orientation["origin"] != "lower" or orientation["transpose_required"]:
+        raise ValueError(f"Unsupported inventoried orientation for {filename}")
+    path = lambert_product_path(root, filename)
+    values = np.asarray(fits.getdata(path, ext=0), dtype=float)
+    expected_shape = tuple(member["fits"]["hdus"][0]["shape"])
+    if values.shape != expected_shape:
+        raise ValueError(f"Shape mismatch for {filename}: {values.shape} != {expected_shape}")
+    semantics = member["scientific_semantics"]
+    return ReleasedImage(
+        filename=filename,
+        data=values,
+        extent=tuple(orientation["extent"]),
+        horizontal_axis=image_axes["horizontal_axis"],
+        vertical_axis=image_axes["vertical_axis"],
+        quantity=semantics["quantity"],
+        value_kind=semantics["value_kind"],
+        value_unit=semantics["value_unit"],
+        figure=semantics["figure"],
+        panel=semantics["panel"],
+        selection=semantics["selection"],
+        sha256=member["sha256"],
+    )
+
+
+def load_figure13_stars(repository_root: str | Path) -> QTable:
+    """Load the 7,708 released Figure 13/14 rows with explicit physical units."""
+
+    root = Path(repository_root).expanduser().resolve()
+    filename = "fig13_and_fig14_table.fits"
+    member = _inventory_member(root, filename)
+    path = lambert_product_path(root, filename)
+    raw = QTable.read(path, hdu=1)
+    if set(raw.colnames) != set(FIGURE_13_COLUMNS):
+        raise ValueError(f"Unexpected columns in {filename}: {raw.colnames}")
+    table = QTable()
+    for released_name, (short_name, unit) in FIGURE_13_COLUMNS.items():
+        table[short_name] = np.asarray(raw[released_name], dtype=float) * unit
+    expected_rows = member["fits"]["hdus"][1]["row_count"]
+    if len(table) != expected_rows:
+        raise ValueError(f"Row-count mismatch for {filename}: {len(table)} != {expected_rows}")
+    table.meta.update(
+        source_filename=filename,
+        source_hdu=1,
+        source_sha256=member["sha256"],
+        representation="individual rows from the authors' already-selected sample",
+    )
+    return table
 
 
 class FetchError(RuntimeError):
@@ -287,4 +422,3 @@ def fetch_zenodo_release(
         temporary.write("\n")
     os.replace(temporary_manifest, manifest_path)
     return manifest
-
