@@ -15,3 +15,6 @@ htmlcov/
 
 # Local notebook execution products
 /notebooks/executed/
+
+# Python packaging metadata
+*.egg-info/
