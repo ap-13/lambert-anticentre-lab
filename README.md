@@ -7,8 +7,8 @@ scope and scientific guardrails are in
 
 The repository deliberately keeps two data tracks separate:
 
-- a future public DESI DR1/Gaia-backed teaching sample for the coordinate
-  workflow in Notebook 1;
+- a compact public DESI DR1 SV2-bright/Gaia DR3 teaching sample for the
+  coordinate workflow in Notebook 1;
 - Lambert's author-released Zenodo figure products for Notebooks 2 and 3.
 
 The Zenodo release is a collection of downstream figure products. It is not the
@@ -17,10 +17,9 @@ repository does not claim to reproduce that source-level analysis.
 
 ## Current status
 
-Task 1 provides packaging, verified download/cache machinery, offline tests,
-and executable notebook shells. It contains no scientific notebook analysis.
-The Lambert FITS/HDU inventory and semantic mapping are Task 2 work and do not
-yet exist.
+Tasks 1--2 provide packaging, download/cache machinery, and the Lambert release
+inventory. Task 3 implements Notebook 1 and its small public-data workflow.
+Notebooks 2 and 3 remain executable shells.
 
 ## Environment
 
@@ -42,8 +41,21 @@ The default suite never uses the network:
 uv run pytest
 ```
 
-The notebook execution harness starts a fresh kernel for each of the three
-notebook shells.
+The notebook execution harness starts a fresh kernel for Notebook 1 and both
+remaining notebook shells.
+
+## Notebook 1 public sample
+
+The committed teaching product is generated from the official DESI DR1 MWS
+Iron `rvpix-sv2-bright.fits` combined product. It is Survey Validation 2 data,
+not the DESI main survey, not representative population data, and not the
+Lambert DR2 sample. To rebuild from a verified local cache:
+
+```bash
+uv run python scripts/build_public_demo_sample.py
+```
+
+Add `--download` only when explicit network access is intended.
 
 ## Lambert release fetch smoke test
 
@@ -66,6 +78,5 @@ mapping, and scientific interpretation belong to Task 2.
 
 See [`data/README.md`](data/README.md) for the provenance contract. Raw
 downloads, derived working data, and routine validation figures are ignored by
-Git. Task 2 will create the compact committed files
+Git. Task 2 created the compact committed files
 `data/data_inventory.json` and `data/lambert_release_ambiguities.md`.
-

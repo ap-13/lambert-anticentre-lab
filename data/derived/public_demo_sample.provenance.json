@@ -1,0 +1,173 @@
+{
+  "authoritative_source_url": "https://data.desi.lbl.gov/public/dr1/vac/dr1/mws/iron/v1.0/rv_output/240520/rvpix-sv2-bright.fits",
+  "catalogue_release": "DESI DR1 MWS Iron v1.0; Survey Validation 2 / bright",
+  "cut_flow": [
+    {
+      "cut": "source rows",
+      "remaining": 7239
+    },
+    {
+      "cut": "SUCCESS == True",
+      "remaining": 7013
+    },
+    {
+      "cut": "RVS_WARN == 0",
+      "remaining": 7013
+    },
+    {
+      "cut": "RR_SPECTYPE == \"STAR\"",
+      "remaining": 6902
+    },
+    {
+      "cut": "COADD_FIBERSTATUS == 0",
+      "remaining": 6902
+    },
+    {
+      "cut": "finite VRAD and VRAD_ERR",
+      "remaining": 6902
+    },
+    {
+      "cut": "VRAD_ERR <= 5 km/s",
+      "remaining": 6477
+    },
+    {
+      "cut": "finite Gaia astrometry and required uncertainties",
+      "remaining": 6434
+    },
+    {
+      "cut": "ASTROMETRIC_PARAMS_SOLVED == 31",
+      "remaining": 6161
+    },
+    {
+      "cut": "VISIBILITY_PERIODS_USED >= 8",
+      "remaining": 6161
+    },
+    {
+      "cut": "RUWE < 1.4 (conventional heuristic)",
+      "remaining": 6072
+    },
+    {
+      "cut": "DUPLICATED_SOURCE == False",
+      "remaining": 6067
+    },
+    {
+      "cut": "PARALLAX > 0.5 mas",
+      "remaining": 1941
+    },
+    {
+      "cut": "PARALLAX_OVER_ERROR >= 20",
+      "remaining": 497
+    },
+    {
+      "cut": "deduplicate Gaia DR3 SOURCE_ID by VRAD_ERR, -SN_R, TARGETID",
+      "remaining": 497
+    },
+    {
+      "cut": "deterministic random sample (seed=20260920, maximum=256)",
+      "remaining": 256
+    }
+  ],
+  "deduplication": [
+    "smallest VRAD_ERR",
+    "highest SN_R",
+    "lowest TARGETID"
+  ],
+  "distance_note": "Inverse parallax is used only for this nearby, positive-parallax, >=20-sigma pedagogical sample; no parallax zero-point correction is applied.",
+  "documentation_urls": [
+    "https://data.desi.lbl.gov/doc/releases/dr1/vac/mws/",
+    "https://desi-mws-dr1-datamodel.readthedocs.io/en/latest/rv_output/RVRUN/rvpix.html"
+  ],
+  "final_sample_rows": 256,
+  "not_lambert_dr2": true,
+  "output": {
+    "filename": "public_demo_sample.ecsv",
+    "row_count": 256,
+    "sha256": "c55a941ea875527d46784f3fc971aa0bb92387d9f992b1b9d944f3184e72ed2d"
+  },
+  "package_version": "0.1.0",
+  "parameters": {
+    "maximum_rows": 256,
+    "minimum_acceptable_rows": 64,
+    "seed": 20260920
+  },
+  "parent_filenames_and_checksums": [
+    {
+      "filename": "rvpix-sv2-bright.fits",
+      "sha256": "622ebc4545a08215e2be4b4a8a198e7acfb9ac1d4dbd6cb2ce02f07a91e07487"
+    }
+  ],
+  "producing_script": "scripts/build_public_demo_sample.py",
+  "producing_script_version": 1,
+  "program": "bright",
+  "purpose": "Compact real-data sample solely for teaching coordinate transformations",
+  "quality_cut_note": "RUWE < 1.4 is a conventional heuristic, not a universal Gaia truth.",
+  "query_or_extraction_rule": "Read named RVTAB/FIBERMAP/SCORES/GAIA extensions and validate row association before fixed Task 3A cuts.",
+  "retrieval_timestamp": "2026-09-20T10:36:34.182087+00:00",
+  "row_selection_rule": "Sequential cut_flow, deterministic Gaia SOURCE_ID deduplication, then ordinary seeded random selection without replacement.",
+  "schema_version": 1,
+  "source_byte_size": 10186560,
+  "source_checksums": {
+    "sha256": "622ebc4545a08215e2be4b4a8a198e7acfb9ac1d4dbd6cb2ce02f07a91e07487"
+  },
+  "source_columns_and_units": {
+    "FIBERMAP": {
+      "COADD_FIBERSTATUS": null,
+      "TARGETID": null,
+      "TARGET_DEC": "deg",
+      "TARGET_RA": "deg"
+    },
+    "GAIA": {
+      "ASTROMETRIC_PARAMS_SOLVED": null,
+      "DEC": "deg",
+      "DEC_ERROR": "mas",
+      "DUPLICATED_SOURCE": null,
+      "PARALLAX": "mas",
+      "PARALLAX_ERROR": "mas",
+      "PARALLAX_OVER_ERROR": null,
+      "PMDEC": "mas/yr",
+      "PMDEC_ERROR": "mas/yr",
+      "PMRA": "mas/yr (mu_alpha*)",
+      "PMRA_ERROR": "mas/yr",
+      "RA": "deg",
+      "RA_ERROR": "mas",
+      "RUWE": null,
+      "SOURCE_ID": null,
+      "VISIBILITY_PERIODS_USED": null
+    },
+    "RVTAB": {
+      "RR_SPECTYPE": null,
+      "RVS_WARN": null,
+      "SN_R": "dimensionless",
+      "SUCCESS": null,
+      "TARGETID": null,
+      "VRAD": "km/s",
+      "VRAD_ERR": "km/s"
+    },
+    "SCORES": {
+      "TARGETID": null
+    }
+  },
+  "source_row_association": {
+    "finite_gaia_position_rows": 7138,
+    "gaia_association_basis": "Official rvpix data model states GAIA contains Gaia DR3 measurements for each catalogue object; finite row-wise positions were additionally required to lie within 2 arcsec.",
+    "maximum_target_gaia_separation_arcsec": 0.996543567057164,
+    "row_counts": {
+      "FIBERMAP": 7239,
+      "GAIA": 7239,
+      "RVTAB": 7239,
+      "SCORES": 7239
+    },
+    "rvt_fibermap_target_coordinates_exact": true,
+    "rvt_fibermap_targetid_exact": true,
+    "rvt_scores_targetid_exact": true
+  },
+  "source_table_or_hdu": [
+    "RVTAB",
+    "FIBERMAP",
+    "SCORES",
+    "GAIA"
+  ],
+  "source_units_note": "Several Gaia TUNIT cards are absent in this file; units follow the official rvpix data model and Gaia DR3 definitions.",
+  "survey": "sv2",
+  "track": "A: public DESI DR1/Gaia-backed educational workflow"
+}

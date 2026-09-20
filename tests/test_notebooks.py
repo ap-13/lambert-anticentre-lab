@@ -16,9 +16,10 @@ NOTEBOOKS = [
 
 
 @pytest.mark.parametrize("notebook_path", NOTEBOOKS, ids=lambda path: path.stem)
-def test_notebook_shell_executes_in_fresh_kernel(notebook_path: Path) -> None:
+def test_notebook_executes_in_fresh_kernel(notebook_path: Path) -> None:
     notebook = nbformat.read(notebook_path, as_version=4)
-    assert notebook.metadata["lambert_lab"]["stage"] == "task-1-shell"
+    expected_stage = "task-3-complete" if notebook_path.name.startswith("01_") else "task-1-shell"
+    assert notebook.metadata["lambert_lab"]["stage"] == expected_stage
     client = NotebookClient(
         notebook,
         timeout=60,
@@ -27,4 +28,3 @@ def test_notebook_shell_executes_in_fresh_kernel(notebook_path: Path) -> None:
     )
     executed = client.execute()
     assert any(cell.cell_type == "code" for cell in executed.cells)
-

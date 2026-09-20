@@ -8,9 +8,10 @@ htmlcov/
 
 # Raw downloads and regenerable working products
 /data/raw/
-/data/derived/
+/data/derived/*
+!/data/derived/public_demo_sample.ecsv
+!/data/derived/public_demo_sample.provenance.json
 /figures/validation/
 
 # Local notebook execution products
 /notebooks/executed/
-
