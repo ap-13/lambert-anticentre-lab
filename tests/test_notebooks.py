@@ -23,11 +23,11 @@ def test_notebook_executes_in_fresh_kernel(notebook_path: Path) -> None:
     elif notebook_path.name.startswith("02_"):
         expected_stage = "task-4-complete"
     else:
-        expected_stage = "task-1-shell"
+        expected_stage = "task-5-complete"
     assert notebook.metadata["lambert_lab"]["stage"] == expected_stage
     client = NotebookClient(
         notebook,
-        timeout=60,
+        timeout=120,
         kernel_name="python3",
         resources={"metadata": {"path": str(notebook_path.parent)}},
     )

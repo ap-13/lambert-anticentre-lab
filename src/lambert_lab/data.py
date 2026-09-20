@@ -48,12 +48,47 @@ class ReleasedImage:
     sha256: str
 
 
+@dataclass(frozen=True)
+class Figure9Wave:
+    """Released Figure 9 binned wave with explicit units and provenance."""
+
+    lz: u.Quantity
+    vr: u.Quantity
+    vr_uncertainty: u.Quantity
+    filename: str
+    hdu: int
+    sha256: str
+
+
+@dataclass(frozen=True)
+class Figure10Spectrum:
+    """Released Figure 10 author-computed spectrum and power spread."""
+
+    frequency: u.Quantity
+    power: np.ndarray
+    power_spread: np.ndarray
+    filename: str
+    hdu: int
+    sha256: str
+
+
 FIGURE_13_COLUMNS = {
     "Galactic latitude [deg]": ("b", u.deg),
     "Galactic longitude [deg]": ("l", u.deg),
     "vertical velocity [km/s]": ("V_Z", u.km / u.s),
     "radial velocity [km/s]": ("V_R", u.km / u.s),
 }
+
+FIGURE_9_COLUMNS = (
+    "angular momentum [kpc km/s]",
+    "radial velocity [km/s]",
+    "radial velocity uncertainty [km/s]",
+)
+FIGURE_10_COLUMNS = (
+    "Frequency of Vr in 1/Lz",
+    "Power",
+    "1-sigma on the Power",
+)
 
 
 @lru_cache(maxsize=4)
@@ -157,6 +192,59 @@ def load_figure13_stars(repository_root: str | Path) -> QTable:
         representation="individual rows from the authors' already-selected sample",
     )
     return table
+
+
+def load_figure9_wave(repository_root: str | Path) -> Figure9Wave:
+    """Load and validate the 70-row released Figure 9 summary table."""
+
+    root = Path(repository_root).expanduser().resolve()
+    filename = "Lz_Vr_fig9.fits"
+    member = _inventory_member(root, filename)
+    raw = QTable.read(lambert_product_path(root, filename), hdu=1)
+    if tuple(raw.colnames) != FIGURE_9_COLUMNS:
+        raise ValueError(f"Unexpected columns in {filename}: {raw.colnames}")
+    if len(raw) != 70 or member["fits"]["hdus"][1]["row_count"] != 70:
+        raise ValueError(f"Expected 70 Figure 9 rows; found {len(raw)}")
+    arrays = [np.asarray(raw[name], dtype=float) for name in FIGURE_9_COLUMNS]
+    if not all(np.all(np.isfinite(values)) for values in arrays):
+        raise ValueError(f"Non-finite values in {filename}")
+    if np.any(arrays[0] <= 0) or np.any(arrays[2] <= 0):
+        raise ValueError(f"Figure 9 requires positive L_Z and uncertainties")
+    return Figure9Wave(
+        lz=arrays[0] * u.kpc * u.km / u.s,
+        vr=arrays[1] * u.km / u.s,
+        vr_uncertainty=arrays[2] * u.km / u.s,
+        filename=filename,
+        hdu=1,
+        sha256=member["sha256"],
+    )
+
+
+def load_figure10_spectrum(repository_root: str | Path) -> Figure10Spectrum:
+    """Load and validate the 35-row released Figure 10 derived spectrum."""
+
+    root = Path(repository_root).expanduser().resolve()
+    filename = "FFT_fig10.fits"
+    member = _inventory_member(root, filename)
+    raw = QTable.read(lambert_product_path(root, filename), hdu=1)
+    if tuple(raw.colnames) != FIGURE_10_COLUMNS:
+        raise ValueError(f"Unexpected columns in {filename}: {raw.colnames}")
+    if len(raw) != 35 or member["fits"]["hdus"][1]["row_count"] != 35:
+        raise ValueError(f"Expected 35 Figure 10 rows; found {len(raw)}")
+    arrays = [np.asarray(raw[name], dtype=float) for name in FIGURE_10_COLUMNS]
+    if not all(np.all(np.isfinite(values)) for values in arrays):
+        raise ValueError(f"Non-finite values in {filename}")
+    if not np.all(np.diff(arrays[0]) < 0):
+        raise ValueError("Released Figure 10 frequencies must be descending")
+    frequency_unit = u.kpc * u.km / u.s
+    return Figure10Spectrum(
+        frequency=arrays[0] * frequency_unit,
+        power=arrays[1],
+        power_spread=arrays[2],
+        filename=filename,
+        hdu=1,
+        sha256=member["sha256"],
+    )
 
 
 class FetchError(RuntimeError):
