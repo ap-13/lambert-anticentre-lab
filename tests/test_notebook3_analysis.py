@@ -4,6 +4,7 @@ from pathlib import Path
 
 import astropy.units as u
 import numpy as np
+import pytest
 
 from lambert_lab.data import load_figure10_spectrum, load_figure9_wave
 from lambert_lab.spectral import (
@@ -19,6 +20,8 @@ from lambert_lab.spectral import (
 
 ROOT = Path(__file__).resolve().parents[1]
 FREQUENCY_UNIT = u.kpc * u.km / u.s
+
+pytestmark = pytest.mark.requires_lambert_release
 
 
 def released_arrays() -> tuple[np.ndarray, np.ndarray, np.ndarray]:

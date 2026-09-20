@@ -4,12 +4,15 @@ from pathlib import Path
 
 import astropy.units as u
 import numpy as np
+import pytest
 
 from lambert_lab.data import load_figure13_stars, load_released_image
 from lambert_lab.plotting import constant_lz_curves, zero_centered_norm
 
 
 ROOT = Path(__file__).resolve().parents[1]
+
+pytestmark = pytest.mark.requires_lambert_release
 
 
 def test_fixed_image_loading_preserves_inventory_orientation() -> None:

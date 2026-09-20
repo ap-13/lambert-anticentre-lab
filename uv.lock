@@ -1304,6 +1304,7 @@ dev = [
     { name = "ipykernel" },
     { name = "jupyterlab" },
     { name = "nbclient" },
+    { name = "nbconvert" },
     { name = "nbformat" },
     { name = "pytest" },
 ]
@@ -1321,6 +1322,7 @@ dev = [
     { name = "ipykernel", specifier = ">=6" },
     { name = "jupyterlab", specifier = ">=4" },
     { name = "nbclient", specifier = ">=0.10" },
+    { name = "nbconvert", specifier = ">=7" },
     { name = "nbformat", specifier = ">=5.10" },
     { name = "pytest", specifier = ">=8" },
 ]

@@ -14,9 +14,16 @@ NOTEBOOKS = [
     ROOT / "notebooks" / "03_from_spiral_winding_to_a_galactic_clock.ipynb",
     ROOT / "notebooks" / "04_visual_intuition_lab.ipynb",
 ]
+NOTEBOOK_PARAMS = [
+    pytest.param(
+        notebook_path,
+        marks=(pytest.mark.requires_lambert_release if not notebook_path.name.startswith("01_") else ()),
+    )
+    for notebook_path in NOTEBOOKS
+]
 
 
-@pytest.mark.parametrize("notebook_path", NOTEBOOKS, ids=lambda path: path.stem)
+@pytest.mark.parametrize("notebook_path", NOTEBOOK_PARAMS, ids=lambda path: path.stem)
 def test_notebook_executes_in_fresh_kernel(notebook_path: Path) -> None:
     notebook = nbformat.read(notebook_path, as_version=4)
     if notebook_path.name.startswith("01_"):

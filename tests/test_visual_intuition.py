@@ -27,6 +27,8 @@ from lambert_lab.plotting import (
 
 ROOT = Path(__file__).resolve().parents[1]
 
+pytestmark = pytest.mark.requires_lambert_release
+
 
 def test_nominal_centers_and_figure5_strip_are_deterministic() -> None:
     vr = load_released_image(ROOT, "lb_VR_fig5.fits")
