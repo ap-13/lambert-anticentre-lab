@@ -12,6 +12,7 @@ NOTEBOOKS = [
     ROOT / "notebooks" / "01_from_sky_to_galactic_phase_space.ipynb",
     ROOT / "notebooks" / "02_reading_the_disturbed_anticentre.ipynb",
     ROOT / "notebooks" / "03_from_spiral_winding_to_a_galactic_clock.ipynb",
+    ROOT / "notebooks" / "04_visual_intuition_lab.ipynb",
 ]
 
 
@@ -22,8 +23,10 @@ def test_notebook_executes_in_fresh_kernel(notebook_path: Path) -> None:
         expected_stage = "task-3-complete"
     elif notebook_path.name.startswith("02_"):
         expected_stage = "task-4-complete"
-    else:
+    elif notebook_path.name.startswith("03_"):
         expected_stage = "task-5-complete"
+    else:
+        expected_stage = "task-6b-complete"
     assert notebook.metadata["lambert_lab"]["stage"] == expected_stage
     client = NotebookClient(
         notebook,

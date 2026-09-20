@@ -9,7 +9,8 @@ The repository deliberately keeps two data tracks separate:
 
 - a compact public DESI DR1 SV2-bright/Gaia DR3 teaching sample for the
   coordinate workflow in Notebook 1;
-- Lambert's author-released Zenodo figure products for Notebooks 2 and 3.
+- Lambert's author-released Zenodo figure products for Notebooks 2 and 3 and
+  the optional visual-intuition companion.
 
 The Zenodo release is a collection of downstream figure products. It is not the
 unpublished source-level DESI DR2 stellar catalogue used by Lambert. This
@@ -17,9 +18,10 @@ repository does not claim to reproduce that source-level analysis.
 
 ## Current status
 
-Tasks 1--2 provide packaging, download/cache machinery, and the Lambert release
-inventory. Task 3 implements Notebook 1 and its small public-data workflow.
-Notebooks 2 and 3 remain executable shells.
+The three core notebooks are complete. Notebook 4,
+`04_visual_intuition_lab.ipynb`, is an optional companion/workbench that uses
+the same released products while introducing clearly labelled pedagogical
+display transformations and one-dimensional reductions.
 
 ## Environment
 
@@ -41,8 +43,8 @@ The default suite never uses the network:
 uv run pytest
 ```
 
-The notebook execution harness starts a fresh kernel for Notebook 1 and both
-remaining notebook shells.
+The notebook execution harness starts a fresh kernel for all three core
+notebooks and the optional visual-intuition companion.
 
 ## Notebook 1 public sample
 
