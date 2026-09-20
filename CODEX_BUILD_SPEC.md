@@ -120,6 +120,33 @@ Important:
 - do not imply access to the full DR2 stellar catalogue;
 - provenance must be displayed in notebook metadata/Markdown.
 
+The Lambert paper is not currently present in this local repository. Exact
+paper-dependent axis definitions, selections, equations, and figure semantics
+therefore remain unresolved until the paper is made available locally or is
+accessed from an authoritative source during Task 2. Do not fill those gaps
+from memory.
+
+## Machine-readable provenance
+
+Each downloaded release must record, at minimum:
+- the exact Zenodo record and version resolved at retrieval time;
+- DOI and authoritative source URL;
+- original filename and byte size;
+- advertised checksum, when available, and a locally verified checksum;
+- retrieval timestamp;
+- release title, creators, licence, and citation metadata when supplied.
+
+Each derived product must additionally record:
+- the producing script or package version and relevant parameters;
+- the parent filename(s) and checksum(s);
+- enough information to distinguish a regenerated product from an original
+  author-released file.
+
+Do not rely on the DOI alone if it can resolve to more than one record version.
+Raw downloads and routine generated validation output should normally be
+ignored by Git. Compact inventory, ambiguity, and provenance metadata should
+be committed.
+
 ---
 
 # 4. Preferred software stack
@@ -140,7 +167,7 @@ Dynamics:
 
 Reproducibility/testing:
 - `pytest`
-- `nbclient` or `nbconvert` for clean notebook execution tests
+- `nbformat` and `nbclient` for clean notebook execution tests
 - optional `ruff` for source files
 - optional `pre-commit` only if it does not complicate onboarding
 
@@ -177,6 +204,8 @@ lambert-anticentre-lab/
 │   └── build_public_demo_sample.py
 ├── data/
 │   ├── README.md
+│   ├── data_inventory.json
+│   ├── lambert_release_ambiguities.md
 │   ├── raw/
 │   └── derived/
 ├── tests/
@@ -189,6 +218,10 @@ lambert-anticentre-lab/
 ```
 
 Notebook code should call short, readable functions from `src/` rather than hide 50–100 lines of plumbing in every notebook.
+
+`data/data_inventory.json` and `data/lambert_release_ambiguities.md` are Task 2
+outputs, not Task 1 placeholders. Runtime code may create ignored raw, derived,
+and validation directories when needed.
 
 ---
 
@@ -234,7 +267,8 @@ L_Z=R\,V_\phi.
    - short schematic/intuitive explanation;
    - Sun versus Galactic Centre;
    - cylindrical directions;
-   - sign conventions.
+   - sign conventions reconciled against the chosen Astropy frame and
+     Lambert's documented definitions after source inspection.
 
 3. **Astropy transformation**
    - construct `SkyCoord`;
@@ -266,6 +300,8 @@ Do not bury the coordinate transformation inside unexplained helper code. The no
 - sign-convention tests;
 - verify transformation round-trip or compare against direct Astropy output;
 - document adopted solar position/velocity;
+- do not assume axis, rotation, or velocity signs from memory: record how the
+  adopted Astropy conventions map onto Lambert's definitions;
 - no hand-written transformation formula should replace a validated Astropy transformation unless shown strictly for intuition.
 
 ### Out of scope
@@ -292,11 +328,10 @@ Give this notebook the highest polishing priority.
 
 ## Part A — inspect the author-released products
 
-- download/cache Zenodo archive;
-- list FITS files;
-- inspect HDUs, shapes, headers, units, and figure descriptions;
-- build a machine-readable inventory mapping released files to paper figures;
-- distinguish FITS tables from 2-D arrays.
+- load the cached Zenodo release and the committed Task 2 inventory;
+- summarize the relevant FITS files, HDUs, shapes, units, and descriptions;
+- distinguish FITS tables from 2-D arrays and explain what operations each
+  representation supports.
 
 Keep this short and practical.
 
@@ -307,13 +342,16 @@ Reconstruct or simplify the most useful Figure 5/6-style products.
 Teach:
 - sky-space versus Galactocentric projections;
 - density versus median velocity;
-- binning;
-- minimum-count masking;
+- binning and minimum-count masking when the released representation permits
+  them, or otherwise how those operations are already embedded in the product;
 - median \(V_R\), \(V_Z\), and optionally \(V_\phi\);
 - why velocity structure can reveal a population more clearly than density alone.
 
-Key scientific point:
+Target scientific point, if supported by the inspected products:
 - in Lambert's sampled region, ACS- and Monoceros-associated stars show opposite-sign radial and vertical motions.
+
+If this cannot be independently reconstructed, present it as Lambert's reported
+result and state which public information is insufficient.
 
 Do not overstate:
 - "opposite-sign motions" is observational;
@@ -331,30 +369,39 @@ Teach:
 
 ## Part D — ACS boundary experiment
 
-Use the released Figure 13 table where possible.
+Use the released Figure 13 table if Task 2 confirms that it contains the
+row-level quantities and selection state required for the comparison.
 
-Build the sequence:
+When supported, build the sequence:
 
 **all stars → \(V_R>0\) → \(V_R<0\)**
 
-and examine \(b-V_Z\) or the released equivalent.
+and examine \(b-V_Z\) or the released equivalent. If the table contains only
+preselected or aggregated values, show only the comparisons directly supported
+by those values and document the unavailable operation.
 
-Reader should see that:
+When supported by the released representation, the reader should see that:
 - the high-latitude ACS overdensity is associated with a characteristic velocity-sign regime;
 - the associated kinematic population extends below the photometric ACS boundary;
 - therefore the named density feature is not synonymous with a kinematically isolated object.
 
+Otherwise, the notebook should identify which of these steps is reported by
+Lambert and which cannot be tested independently from the release.
+
 ### Required "reader prediction" moments
 
-Before revealing a filtered panel, ask the reader what they expect to happen.
+Before revealing a filtered or otherwise contrasted panel, ask the reader what
+they expect to happen. This requirement applies only to a comparison supported
+by the released representation.
 
 ### Try-it-yourself experiments
 
-Limit to two or three scientifically meaningful experiments, for example:
-- vary binning resolution within a defensible range;
-- change minimum stars/bin;
-- switch \(V_R\) sign selection;
-- toggle photometric boundary overlay.
+Limit to two or three scientifically meaningful experiments selected only after
+Task 2 establishes which operations the released representation supports. They
+may include rebinning, changing a minimum-count mask, switching a \(V_R\) sign
+selection, or toggling a photometric boundary overlay. Do not present rebinning,
+remasking, or source-level filtering as available for a fixed two-dimensional
+array or an already selected table.
 
 ### Validation
 
@@ -365,6 +412,11 @@ For every recreated paper panel:
 - save a compact validation image;
 - do not judge success solely from aesthetics.
 
+If a result cannot be independently reconstructed from the public product,
+record that limitation in the validation table and reproduce only the supported
+intermediate or author-released panel. Accurate limitation reporting is an
+acceptable outcome; it must prevent claims of independent reproduction.
+
 Create a small validation table in the notebook:
 
 | Item | Published reference | Reproduction status | Difference |
@@ -374,9 +426,13 @@ Create a small validation table in the notebook:
 
 End with:
 
-**Directly supported**
+**Directly supported, if established by Task 2 and the reconstruction**
 - ACS and MRi have different kinematics in the sampled region.
 - ACS-associated kinematics extend beyond the narrow photometric overdensity.
+
+If either statement is only encoded in an author-produced aggregate and cannot
+be independently reconstructed, label it as a reported result and state the
+public-data limitation.
 
 **Supported inference**
 - ACS is not a fully isolated kinematic island.
@@ -436,9 +492,10 @@ Do not recreate all of Antoja et al. (2022).
 
 ### Part C — Lambert released timing products
 
-Use released Figure 9/10 tables.
+Use the released Figure 9/10 tables only for the stages that Task 2 confirms
+their columns and the paper's documented equations support.
 
-Workflow:
+Candidate workflow:
 
 \[
 \langle V_R\rangle(L_Z)
@@ -454,6 +511,11 @@ Workflow:
 t.
 \]
 
+This chain is not an advance guarantee that every intermediate can be derived
+from the public release. Task 2 must determine whether the tables contain the
+input wave, transformed samples, Fourier products, timing intermediates, or
+some combination. Omit or label as unavailable any unsupported transformation.
+
 At each arrow explicitly label whether it is:
 - a data re-expression;
 - a numerical operation;
@@ -466,11 +528,17 @@ Attempt to reproduce Lambert's reported timing calculation from the released pro
 Important:
 - reproduce the calculation only to the extent supported by the public release and paper;
 - report any ambiguity or missing information rather than silently guessing;
-- compare with Lambert's quoted approximately 0.25 Gyr and 1.10 Gyr values only after independent computation.
+- treat Lambert's quoted approximately 0.25 Gyr and 1.10 Gyr values as
+  comparison targets, not fixtures that the implementation must be forced to
+  reproduce;
+- if an independent computation is not supported, show the available released
+  intermediate and document the missing link instead of tuning choices to the
+  published values.
 
 ### Part E — robustness / sensitivity
 
-Run a small set of sensitivity experiments, such as:
+Run a small set of sensitivity experiments only where the released data and
+documented equations expose the relevant choice, such as:
 - smoothing strength;
 - fitting interval;
 - Fourier windowing choice if applicable;
@@ -538,7 +606,10 @@ Avoid:
 
 # 10. `AGENTS.md` scientific guardrails
 
-Create `AGENTS.md` at repository root containing at least the following rules.
+Create a concise, operational `AGENTS.md` at repository root during Task 1. It
+should act as a map to this specification rather than copy it wholesale. Link
+to the relevant sections of `CODEX_BUILD_SPEC.md` and include only the
+highest-value prohibitions, commands, and validation expectations below.
 
 ## Scientific claims
 
@@ -553,6 +624,8 @@ Create `AGENTS.md` at repository root containing at least the following rules.
 
 - Use `astropy.units` wherever practical.
 - Adopt Galactocentric frame parameters explicitly and centrally.
+- Reconcile the chosen Astropy frame with Lambert's documented definitions
+  after source inspection; do not infer conventions from memory.
 - Define \(V_R\), \(V_\phi\), \(V_Z\), \(\phi\), and \(L_Z\) sign conventions in Markdown and tests.
 - Add at least one sign sanity test.
 - Prefer Astropy coordinate transformations to handwritten transformation code.
@@ -566,7 +639,9 @@ Create `AGENTS.md` at repository root containing at least the following rules.
 - notebooks must execute top-to-bottom in a clean kernel;
 - random processes require a seed;
 - downloads must be cached and checksummed where feasible;
-- provenance should be machine-readable where feasible.
+- compact inventory, ambiguity, and provenance metadata must be machine-readable
+  where applicable and committed; raw downloads and routine generated outputs
+  should normally be ignored.
 
 ## Validation
 
@@ -574,6 +649,7 @@ Create `AGENTS.md` at repository root containing at least the following rules.
 - compare scientific morphology/numbers, not just appearance;
 - tests should catch missing files, wrong units, wrong signs, and broken notebooks;
 - do not declare a reproduction successful if a key published feature is missing.
+- default tests must run offline; network integration tests must be explicitly invoked.
 
 ## Pedagogy
 
@@ -593,7 +669,9 @@ The project is "journal-club ready" when all of the following are true.
 - fresh environment installs successfully;
 - all three notebooks execute top-to-bottom;
 - no notebook requires manual hidden setup;
-- data provenance is documented;
+- data provenance follows the machine-readable schema in Section 3;
+- default unit and notebook tests run offline; network integration tests are
+  opt-in and explicitly invoked;
 - README explains what is and is not reproduced.
 
 ## Notebook 1
@@ -601,21 +679,29 @@ The project is "journal-club ready" when all of the following are true.
 - reader can explain the physical meaning/sign of \(V_R,V_\phi,V_Z\);
 - public data example works;
 - one-star sanity check passes;
-- coordinate choices are explicit.
+- coordinate choices are explicit and reconciled against both the chosen
+  Astropy frame and Lambert's documented definitions.
 
 ## Notebook 2
 
-- at least two central Lambert observational results are reconstructed/simplified;
-- ACS/MRi velocity-sign difference is visually clear;
-- extended ACS-associated kinematics are demonstrable from released products;
+- central Lambert observational results are reconstructed or simplified only
+  to the extent supported by the released representation;
+- the ACS/MRi velocity-sign difference and extended ACS-associated kinematics
+  are shown when independently supported by the public products;
+- any result that cannot be independently reconstructed is explicitly marked
+  as reported rather than reproduced, with the blocking data limitation stated;
 - data/inference/model distinction is explicit.
 
 ## Notebook 3
 
 - toy model clearly demonstrates differential winding;
 - reader can understand why wave frequency contains timing information in the adopted model;
-- Fourier workflow is reproducible from released products to the extent possible;
-- sensitivity experiment demonstrates model dependence;
+- each supported stage of the Fourier workflow is reproducible, while missing
+  public inputs or paper-dependent semantics are identified explicitly;
+- the published approximately 0.25 Gyr and 1.10 Gyr values are comparison
+  targets rather than required test values;
+- a supported sensitivity experiment demonstrates model dependence, or the
+  notebook explains why the released representation does not permit one;
 - Sagittarius is presented as an interpretation, not a direct detection.
 
 ## Presentation usefulness
@@ -649,7 +735,7 @@ Stop if Codex invents unavailable data.
 Create:
 - repo structure;
 - `pyproject.toml`;
-- `AGENTS.md`;
+- concise operational `AGENTS.md` pointing to this specification;
 - download/cache utilities;
 - Zenodo fetcher;
 - basic tests;
@@ -657,24 +743,56 @@ Create:
 - notebook execution test harness.
 
 Do not implement scientific notebook content yet.
+Do not perform full FITS/HDU inspection, figure mapping, semantic
+interpretation, or create the canonical data inventory; those belong to Task 2.
 
 Acceptance:
-- install works;
-- Zenodo release can be fetched and inventoried;
-- tests pass.
+- a fresh editable install works with a minimal base dependency set;
+- importing the package never triggers a download;
+- the Zenodo fetcher supports an explicit destination, caching, exact record
+  metadata, and checksum verification;
+- an explicitly invoked live integration smoke test can fetch and verify the
+  release when network access is authorized;
+- default unit tests use local synthetic fixtures, run offline, and cover cache
+  and checksum behavior, actionable missing-data errors, coordinate sign sanity,
+  and clean execution of the notebook shells;
+- raw downloads and routine validation output are ignored, while the locations
+  for committed compact provenance products are documented;
+- all default offline tests pass.
 
 ## Task 2 — Lambert data inventory
 
 **Model:** GPT-5.6 Sol
 
 Inspect every released FITS product and create:
-- `data_inventory.csv` or `.json`;
+- canonical `data/data_inventory.json`;
 - figure ↔ filename ↔ HDU ↔ shape ↔ columns ↔ header description mapping;
-- a concise Markdown report of ambiguities.
+- `data/lambert_release_ambiguities.md`.
 
 This task should execute code and inspect outputs.
 
 Do not infer scientific meaning beyond headers/paper without citation.
+
+Task 2 owns full FITS/HDU inspection, figure mapping, semantic interpretation,
+and the canonical inventory. Record the exact release metadata and provenance
+schema from Section 3. For every FITS file, include every HDU; record HDU class,
+extension name, shape, dtype, row/column counts, table column names/formats/units,
+header descriptions, finite/invalid counts, axis metadata, panel/slice mapping,
+and unresolved questions where applicable.
+
+Acceptance:
+- every asset in the resolved Zenodo release is present with verified size and
+  checksum, and every FITS HDU appears in the canonical inventory;
+- every figure mapping states whether its evidence comes from a filename,
+  header, release description, or the paper rather than numerical appearance;
+- orientation and axis semantics are checked for two-dimensional arrays;
+- Figures 9, 10, 13, and 14 receive explicit table-level inspection;
+- the inventory states which Notebook 2 operations are supported and precisely
+  which stages of Notebook 3's Fourier/timing chain are publicly reproducible;
+- absent, ambiguous, and paper-dependent information is distinguished in the
+  ambiguity report, with no invented columns, cuts, uncertainties, or source-level
+  interpretation;
+- inventory generation is deterministic and does not modify raw files.
 
 ## Task 3 — Notebook 1 implementation
 
@@ -705,8 +823,9 @@ Only after review, issue corrections.
 Implement only:
 - figure-product loading;
 - selected Lambert observational reconstructions;
-- ACS/MRi velocity comparison;
-- Figure-13-style sign split;
+- ACS/MRi velocity comparison to the extent supported by Task 2;
+- Figure-13-style sign split only if Task 2 establishes that the released table
+  supports it;
 - validation outputs.
 
 No tidal-model discussion beyond minimal context.
@@ -761,13 +880,14 @@ Check physical interpretation before proceeding.
 Use released Figure 9/10 tables and paper equations.
 
 Implement:
-- exact data transformations supported by paper/release;
-- Fourier calculation;
-- timing mapping;
+- exact data transformations supported by the paper/release;
+- Fourier calculation where the released inputs and documented method permit it;
+- timing mapping where the required equations and assumptions are documented;
 - comparison to published values;
-- sensitivity tests.
+- supported sensitivity tests.
 
-If required information is missing, document the gap rather than guess.
+If required information is missing, document the gap rather than guess or tune
+the analysis to recover the published values.
 
 ## Task 8 — final engineering audit
 
@@ -845,11 +965,13 @@ Use Work as an **adversarial feasibility audit**, not as a substitute for the sc
 
 # 15. Recommended immediate next move
 
-1. Put this file at repository root as `CODEX_BUILD_SPEC.md`.
-2. Create `AGENTS.md` from Section 10.
-3. Start **Task 0** in Codex with GPT-5.6 Sol.
-4. Review Codex's plan before allowing implementation.
-5. Run Task 1 and Task 2.
+1. Keep this file at repository root as `CODEX_BUILD_SPEC.md`.
+2. Complete **Task 0** reconnaissance and review its plan.
+3. Apply any approved Task 0 corrections to this specification as **Task 0.5**.
+4. Run Task 1, including creation of the concise operational `AGENTS.md` and an
+   explicitly invoked live-fetch smoke test when network access is authorized.
+5. Run Task 2 to inspect the release and commit the canonical inventory,
+   ambiguity report, and compact provenance metadata.
 6. Only then decide whether a ChatGPT Work audit is still worth the shared allowance.
 7. Build Notebook 1.
 8. Build Notebook 2 and review it most carefully.
