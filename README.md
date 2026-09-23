@@ -221,7 +221,7 @@ uv run python scripts/prepare_lambert_data.py --download
 
 ## 01 — From sky to Galactic phase space
 
-A compact real-data workflow using a public DESI DR1 MWS/Gaia DR3 teaching sample.
+A figure-driven coordinate atlas with eight recurring labelled toy stars, two offline Milky Way backgrounds, and a compact real-data workflow using a public DESI DR1 MWS/Gaia DR3 teaching sample. The toy geometry and the nearby 256-star sample are distinct from Lambert's DR2 source catalogue.
 
 The notebook starts with quantities that surveys actually measure:
 

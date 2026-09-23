@@ -10,7 +10,9 @@ readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "astropy>=6",
+    "bokeh>=3,<4",
     "matplotlib>=3.8",
+    "mw-plot>=0.13.1,<0.14",
     "numpy>=1.26",
     "scipy>=1.11",
 ]
